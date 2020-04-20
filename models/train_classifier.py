@@ -8,6 +8,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
+from nltk.corpus import stopwords
 
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import GridSearchCV
@@ -43,7 +44,28 @@ def load_data(database_filepath, table_name='disaster'):
 
 
 def tokenize(text):
-    pass
+    """
+    tokenize input text
+    
+    :param text: input text string
+    :return: clean_tokens: tokennized string list
+    """
+    
+    #normalize text
+    text = re.sub(r'[^a-zA-Z0-9]',' ',text.lower())
+
+    #token messages
+    words = word_tokenize(text)
+    tokens = [w for w in words if w not in stopwords.words("english")]
+
+    #sterm and lemmatizer
+    lemmatizer = WordNetLemmatizer()
+    clean_tokens = []
+    for tok in tokens:
+        clean_tok = lemmatizer.lemmatize(tok).strip()
+        clean_tokens.append(clean_tok)
+
+    return clean_tokens
 
 
 def build_model():
