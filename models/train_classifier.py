@@ -16,7 +16,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
+from sklearn.multioutput import MultiOutputClassifier
 
 url_regex = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
 
@@ -69,8 +70,33 @@ def tokenize(text):
 
 
 def build_model():
-    pass
+    """
+    build machine learning pipeline
+    
+    :no input param
+    :return: cv: Grid Search Model
+    """
+    # create pipeline
+    pipeline = Pipeline([
+        ('vect',TfidfVectorizer(tokenizer=tokenize)),
+        ('tfidf', TfidfTransformer()),
+        ('clf', MultiOutputClassifier(
+            RandomForestClassifier(n_estimators=150,random_state=23)
+            )
+        )
+    ])
 
+    # set parameters for pipeline
+    parameters = {
+        'clf__estimator__min_samples_leaf': [2, 5],
+        'clf__estimator__learning_rate': [0.05, 0.5]
+    }
+
+    # create grid search object
+    # cv = GridSearchCV(pipeline, param_grid=parameters, n_jobs=-1)
+    cv = GridSearchCV(pipeline, param_grid=parameters, cv=3, scoring='f1_weighted')
+
+    return cv
 
 def evaluate_model(model, X_test, Y_test, category_names):
     pass
