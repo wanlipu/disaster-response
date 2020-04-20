@@ -1,8 +1,34 @@
-import sys
+import sys, re, pickle
+
+import nltk
+nltk.download(['punkt', 'wordnet', 'averaged_perceptron_tagger'])
+
+import numpy as np
+import pandas as pd
+from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
+
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+
+url_regex = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
 
 
-def load_data(database_filepath):
-    pass
+def load_data(database_filepath, table_name):
+    # load data from database
+    engine = create_engine('sqlite:///{}'.format(database_filepath))
+    df=pd.read_sql('SELECT * from {}'.format(table_name), engine)
+    X = df['message']
+    
+    y = df.iloc[:,4:]
+    category_names=y.columns.values
+    
+    return X, y, category_names
 
 
 def tokenize(text):
