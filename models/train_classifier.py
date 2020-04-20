@@ -5,6 +5,7 @@ nltk.download(['punkt', 'wordnet', 'averaged_perceptron_tagger'])
 
 import numpy as np
 import pandas as pd
+from sqlalchemy import create_engine
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 
@@ -19,7 +20,17 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 url_regex = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
 
 
-def load_data(database_filepath, table_name):
+def load_data(database_filepath, table_name='disaster'):
+    """
+    load data from database
+    
+    :param database_filepath: path for database file 
+    :param table_name: name for the table, default is 'disaster'
+    :return: X: pandas dataFrame for X
+    :return: Y: labels 
+    :return: category_names
+    """
+
     # load data from database
     engine = create_engine('sqlite:///{}'.format(database_filepath))
     df=pd.read_sql('SELECT * from {}'.format(table_name), engine)
