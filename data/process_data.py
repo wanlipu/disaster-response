@@ -1,16 +1,84 @@
 import sys
+import numpy as np
+import pandas as pd
+from sqlalchemy import create_engine
 
 
 def load_data(messages_filepath, categories_filepath):
-    pass
+    """
+    load data from message csv file and categories csv file and merge them into pandas dataFrame
+    
+    :param messages_filepath: path for messages file 
+    :param categories_filepath: path for categories files
+    :return: merged pandas dataFrame
+    """
+    # load messages dataset
+    messages = pd.read_csv(messages_filepath)
+    
+    # load categories dataset
+    categories = pd.read_csv(categories_filepath)
+    
+    # merge datasets
+    df = messages.merge(categories, on='id')
+    
+    return df
 
 
 def clean_data(df):
-    pass
+    """
+    clean data
+    
+    :param df: pandas dataFrame 
+    :return: cleaned pandas dataFrame
+    """
+    # create a dataframe of the 36 individual category columns
+    categories = df['categories'].str.split(";", expand=True)
+
+    # select the first row of the categories dataframe
+    row = categories.loc[0,:]
+
+    # use this row to extract a list of new column names for categories.
+    category_colnames = row.apply(lambda x:x.split('-')[0]).values.tolist()
+
+    # rename the columns of `categories`
+    categories.columns = category_colnames
+
+    for column in categories:
+        # set each value to be the last character of the string
+        categories[column] =  categories[column].apply(lambda x:x.split('-')[1])
+        
+        # convert column from string to numeric
+        categories[column] = categories[column].astype(int)
+        
+        # Check number not in (0,1) and update other value to 1
+        categories.loc[categories[column]>1,column] = 1
+
+    # drop the original categories column from `df`
+    df.drop('categories',axis=1, inplace=True)
+
+    # concatenate the original dataframe with the new `categories` dataframe
+    df = pd.concat([df,categories], axis=1)
+
+    # drop duplicates
+    df.drop_duplicates(inplace=True)
+    
+    return df
 
 
 def save_data(df, database_filename):
-    pass  
+    """
+    save data to database
+    
+    :param df: pandas dataFrame to be saved
+    :param database_filename: path for database 
+    :return: None
+    """  
+    
+    # create engine
+    engine = create_engine('sqlite:///{}'.format(database_filename))
+    
+    # save pandas dataFrame to database
+    df.to_sql("disastertable", engine,if_exists='replace', index=False)
 
 
 def main():
