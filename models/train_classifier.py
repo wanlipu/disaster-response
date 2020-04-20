@@ -12,7 +12,8 @@ from nltk.corpus import stopwords
 
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import GridSearchCV
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -53,14 +54,14 @@ def tokenize(text):
     :return: clean_tokens: tokennized string list
     """
     
-    #normalize text
+    # normalize text
     text = re.sub(r'[^a-zA-Z0-9]',' ',text.lower())
 
-    #token messages
+    # tokenize text
     words = word_tokenize(text)
     tokens = [w for w in words if w not in stopwords.words("english")]
 
-    #sterm and lemmatizer
+    # stemming and lemmatization
     lemmatizer = WordNetLemmatizer()
     clean_tokens = []
     for tok in tokens:
@@ -82,15 +83,17 @@ def build_model():
         ('vect',TfidfVectorizer(tokenizer=tokenize)),
         ('tfidf', TfidfTransformer()),
         ('clf', MultiOutputClassifier(
-            RandomForestClassifier(n_estimators=150,random_state=23)
+            AdaBoostClassifier(
+                base_estimator=DecisionTreeClassifier(class_weight='balanced'),
+                n_estimators=150)
             )
         )
     ])
 
     # set parameters for pipeline
     parameters = {
-        'clf__estimator__min_samples_leaf': [2, 5],
-        'clf__estimator__learning_rate': [0.05, 0.5]
+        'clf__estimator__base_estimator__min_samples_leaf': [2, 5],
+        'clf__estimator__learning_rate': [0.1, 0.5]
     }
 
     # create grid search object
@@ -126,7 +129,17 @@ def evaluate_model(model, X_test, Y_test, category_names):
 
 
 def save_model(model, model_filepath):
-    pass
+    """
+    save model
+    
+    :param model: trained machine learning model
+    :param model_filepath: path for model file
+    :return: None
+    """
+    
+    # save model
+    with open(model_filepath, 'wb') as f:
+        pickle.dump(model, f)
 
 
 def main():
