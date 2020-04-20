@@ -65,12 +65,13 @@ def clean_data(df):
     return df
 
 
-def save_data(df, database_filename):
+def save_data(df, database_filename, table_name='disaster'):
     """
     save data to database
     
     :param df: pandas dataFrame to be saved
     :param database_filename: path for database 
+    :param table_name: name for the table, default is 'disaster'
     :return: None
     """  
     
@@ -78,7 +79,7 @@ def save_data(df, database_filename):
     engine = create_engine('sqlite:///{}'.format(database_filename))
     
     # save pandas dataFrame to database
-    df.to_sql("disastertable", engine,if_exists='replace', index=False)
+    df.to_sql(table_name, engine, if_exists='replace', index=False)
 
 
 def main():
