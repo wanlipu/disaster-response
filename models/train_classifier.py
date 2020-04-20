@@ -17,6 +17,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.multioutput import MultiOutputClassifier
 
 url_regex = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
@@ -99,7 +100,29 @@ def build_model():
     return cv
 
 def evaluate_model(model, X_test, Y_test, category_names):
-    pass
+    """
+    evaluate model
+    
+    :param model: trained machine learning model
+    :param X_test: test data
+    :param Y_test: test labels
+    :param category_names: category names for y
+    :return: None
+    """
+    # generate predictions
+    Y_pred = model.predict(X_test)
+
+    # Print scores and save in log file
+    with open('test.log','a+') as f:
+        for i, name in enumerate(category_names):
+            accu = accuracy_score(Y_test[:, i], Y_pred[:, i])
+            prec = precision_score(Y_test[:, i], Y_pred[:, i], average='weighted')
+            reca = recall_score(Y_test[:, i], Y_pred[:, i], average='weighted')
+            f1 = f1_score(Y_test[:, i], Y_pred[:, i], average='weighted')
+            score = "{}\n Accuracy: {:.4f}\t\t % Precision: {:.4f}\t\t % Recall: {:.4f}\t\t % F1_score: {:.4f}".format(
+                name, accu, prec, reca, f1)
+            print(score)
+            f.write(score)
 
 
 def save_model(model, model_filepath):
