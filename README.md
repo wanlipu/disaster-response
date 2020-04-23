@@ -1,7 +1,5 @@
 # Disaster Response Pipeline Project
 
-This is part of Udacity Data Scientist Program, and this repository is meant to document my progress towards `Disaster Response Pipeline Project` completion.
-
 ### Project Summary
 
 In the Project, I worked on a data set containing real messages that were sent during disaster events. I created a machine learning pipeline to categorize these events so that you can send the messages to an appropriate disaster relief agency.
