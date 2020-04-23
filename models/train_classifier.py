@@ -38,6 +38,7 @@ def load_data(database_filepath, table_name='disaster'):
     # load data from database
     engine = create_engine('sqlite:///{}'.format(database_filepath))
     df=pd.read_sql('SELECT * from {}'.format(table_name), engine)
+    
     X = df['message']
     
     y = df.iloc[:,4:]
@@ -85,20 +86,20 @@ def build_model():
         ('clf', MultiOutputClassifier(
             AdaBoostClassifier(
                 base_estimator=DecisionTreeClassifier(class_weight='balanced'),
-                n_estimators=150)
+                n_estimators=50)
             )
         )
     ])
 
     # set parameters for pipeline
     parameters = {
-        'clf__estimator__base_estimator__min_samples_leaf': [2, 5],
-        'clf__estimator__learning_rate': [0.1, 0.5]
+        'clf__estimator__base_estimator__min_samples_leaf': [5, 20],
+        'clf__estimator__learning_rate': [0.3]
     }
 
     # create grid search object
     # cv = GridSearchCV(pipeline, param_grid=parameters, n_jobs=-1)
-    cv = GridSearchCV(pipeline, param_grid=parameters, cv=3, scoring='f1_weighted')
+    cv = GridSearchCV(pipeline, param_grid=parameters, cv=3, scoring='f1_weighted') 
 
     return cv
 
@@ -118,10 +119,10 @@ def evaluate_model(model, X_test, Y_test, category_names):
     # Print scores and save in log file
     with open('test.log','a+') as f:
         for i, name in enumerate(category_names):
-            accu = accuracy_score(Y_test[:, i], Y_pred[:, i])
-            prec = precision_score(Y_test[:, i], Y_pred[:, i], average='weighted')
-            reca = recall_score(Y_test[:, i], Y_pred[:, i], average='weighted')
-            f1 = f1_score(Y_test[:, i], Y_pred[:, i], average='weighted')
+            accu = accuracy_score(Y_test.loc[:, name], Y_pred[:, i])
+            prec = precision_score(Y_test.loc[:, name], Y_pred[:, i], average='weighted')
+            reca = recall_score(Y_test.loc[:, name], Y_pred[:, i], average='weighted')
+            f1 = f1_score(Y_test.loc[:, name], Y_pred[:, i], average='weighted')
             score = "{}\n Accuracy: {:.4f}\t\t % Precision: {:.4f}\t\t % Recall: {:.4f}\t\t % F1_score: {:.4f}".format(
                 name, accu, prec, reca, f1)
             print(score)
